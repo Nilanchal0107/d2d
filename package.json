@@ -1,0 +1,11 @@
+{
+  "name": "student-id-card",
+  "version": "1.0.0",
+  "description": "A simple HTML + CSS student identity card, tested and deployed with GitHub Actions.",
+  "scripts": {
+    "test": "node --test tests/idcard.test.js"
+  },
+  "keywords": ["html", "css", "devops", "github-actions", "ci-cd"],
+  "license": "MIT",
+  "private": true
+}

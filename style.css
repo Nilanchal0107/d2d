@@ -1,0 +1,247 @@
+/* ==========================================================
+   Student Identity Card  -  Dev2Deploy DevOps Club
+   Plain HTML + CSS. No frameworks, no build step.
+   ========================================================== */
+
+/* ---------- Global reset ---------- */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  --navy: #0f2557;
+  --navy-dark: #0a1836;
+  --accent: #f4a300;
+  --ink: #16233d;
+  --muted: #6b7893;
+  --line: #e3e8f2;
+  --paper: #ffffff;
+}
+
+body {
+  font-family: "Segoe UI", "Trebuchet MS", Verdana, sans-serif;
+  background: linear-gradient(135deg, #1b2a4a 0%, #24406e 50%, #16233d 100%);
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 16px;
+  color: var(--ink);
+}
+
+.page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 22px;
+}
+
+/* ---------- The card ---------- */
+.id-card {
+  width: 380px;
+  background: var(--paper);
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+/* ---------- Header ---------- */
+.card-header {
+  background: linear-gradient(135deg, var(--navy) 0%, var(--navy-dark) 100%);
+  color: #fff;
+  padding: 18px 20px 16px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.logo-badge {
+  flex: 0 0 auto;
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: var(--accent);
+  color: var(--navy-dark);
+  font-weight: 800;
+  font-size: 16px;
+  letter-spacing: 0.5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.header-text {
+  min-width: 0;
+}
+
+.college-name {
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: 0.2px;
+}
+
+.college-tagline {
+  margin-top: 4px;
+  font-size: 11px;
+  color: #c7d3ec;
+  letter-spacing: 0.4px;
+}
+
+.header-strip {
+  background: var(--accent);
+  color: var(--navy-dark);
+  text-align: center;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  padding: 7px 8px;
+}
+
+/* ---------- Photo ---------- */
+.photo-wrap {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  margin-top: 22px;
+}
+
+.student-photo {
+  width: 124px;
+  height: 124px;
+  object-fit: cover;
+  object-position: center top;
+  border-radius: 50%;
+  border: 4px solid var(--paper);
+  box-shadow: 0 6px 18px rgba(15, 37, 87, 0.28);
+  background: var(--line);
+  display: block;
+}
+
+.photo-ring {
+  position: absolute;
+  top: -6px;
+  width: 142px;
+  height: 142px;
+  border-radius: 50%;
+  border: 2px dashed var(--accent);
+  pointer-events: none;
+}
+
+/* ---------- Name ---------- */
+.student-name-block {
+  text-align: center;
+  padding: 16px 20px 6px;
+}
+
+.student-name {
+  font-size: 21px;
+  font-weight: 700;
+  color: var(--navy);
+  letter-spacing: 0.3px;
+}
+
+.student-role {
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--muted);
+  letter-spacing: 0.4px;
+}
+
+/* ---------- Information rows ---------- */
+.info-list {
+  padding: 12px 24px 18px;
+}
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  padding: 8px 0;
+  border-bottom: 1px dashed var(--line);
+}
+
+.info-row:last-child {
+  border-bottom: none;
+}
+
+.info-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.info-value {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+  text-align: right;
+}
+
+/* ---------- Footer ---------- */
+.card-footer {
+  background: #f6f8fc;
+  border-top: 1px solid var(--line);
+  padding: 14px 20px 16px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.barcode {
+  height: 34px;
+  flex: 1 1 auto;
+  background-image: repeating-linear-gradient(
+    to right,
+    var(--ink) 0 2px,
+    transparent 2px 4px,
+    var(--ink) 4px 5px,
+    transparent 5px 9px
+  );
+  opacity: 0.75;
+}
+
+.signature {
+  flex: 0 0 auto;
+  text-align: center;
+}
+
+.sign-line {
+  display: block;
+  width: 84px;
+  border-bottom: 1px solid var(--ink);
+  margin-bottom: 4px;
+}
+
+.sign-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--muted);
+}
+
+/* ---------- Caption below the card ---------- */
+.caption {
+  color: #c7d3ec;
+  font-size: 12px;
+  letter-spacing: 0.5px;
+  text-align: center;
+}
+
+/* ---------- Small screens ---------- */
+@media (max-width: 420px) {
+  .id-card {
+    width: 100%;
+  }
+  .college-name {
+    font-size: 15px;
+  }
+}

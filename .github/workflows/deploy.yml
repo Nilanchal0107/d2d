@@ -1,0 +1,202 @@
+# ==============================================================================
+#  CI/CD PIPELINE  -  Student ID Card
+# ------------------------------------------------------------------------------
+#  WHAT THIS FILE DOES, IN ONE LINE:
+#    Whenever code is pushed to GitHub, this pipeline first TESTS the code,
+#    and ONLY if every test passes does it DEPLOY the site to GitHub Pages.
+#
+#  THE FLOW:
+#    git push  ->  [ JOB 1: test ]  ->  pass?  ->  [ JOB 2: deploy ]  ->  live site
+#                        |
+#                        +--> fail?  ->  pipeline stops, old site stays live
+#
+#  "CI"  = Continuous Integration -> automatically test every change.
+#  "CD"  = Continuous Deployment  -> automatically publish every good change.
+#
+#  This file MUST live at:  .github/workflows/deploy.yml
+#  GitHub scans that exact folder to find pipelines.
+# ==============================================================================
+
+
+# The name shown at the top of the "Actions" tab in your GitHub repository.
+name: CI/CD - Test and Deploy ID Card
+
+
+# ------------------------------------------------------------------------------
+#  "on"  =  THE TRIGGER. When should this pipeline start running?
+# ------------------------------------------------------------------------------
+on:
+  # Trigger 1: every time somebody pushes commits to the "main" branch.
+  push:
+    branches:
+      - main
+
+  # Trigger 2: every time a Pull Request targets "main".
+  # This runs the tests on the proposed change BEFORE it is merged,
+  # so broken code can be caught while it is still under review.
+  pull_request:
+    branches:
+      - main
+
+  # Trigger 3: adds a "Run workflow" button in the Actions tab,
+  # so the pipeline can be started manually during a live demo.
+  workflow_dispatch:
+
+
+# ------------------------------------------------------------------------------
+#  "permissions"  =  WHAT THIS PIPELINE IS ALLOWED TO DO
+#  GitHub gives each run a temporary token. By default that token can barely
+#  do anything, so we must explicitly grant what GitHub Pages needs.
+# ------------------------------------------------------------------------------
+permissions:
+  contents: read    # allowed to read (download) the repository code
+  pages: write      # allowed to publish a new version of the GitHub Pages site
+  id-token: write   # allowed to prove its identity to the Pages service (security)
+
+
+# ------------------------------------------------------------------------------
+#  "concurrency"  =  AVOID TWO DEPLOYMENTS FIGHTING EACH OTHER
+#  If you push twice quickly, the older run is cancelled so that only the
+#  newest code ever reaches the live site.
+# ------------------------------------------------------------------------------
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+
+# ------------------------------------------------------------------------------
+#  "jobs"  =  THE ACTUAL STAGES OF THE PIPELINE
+#  Each job runs on a fresh, clean virtual machine rented from GitHub.
+# ------------------------------------------------------------------------------
+jobs:
+
+  # ============================================================================
+  #  JOB 1 : TEST  -  THE QUALITY GATE
+  #  This is the job that blocks a buggy deployment.
+  # ============================================================================
+  test:
+    # Human-friendly name shown in the Actions UI.
+    name: Run Tests (Quality Gate)
+
+    # Rent a fresh virtual machine running the latest Ubuntu Linux.
+    runs-on: ubuntu-latest
+
+    # "steps" run one after another, top to bottom, on that machine.
+    steps:
+
+      # ----------------------------------------------------------------------
+      # STEP 1.1 - Download our repository code onto the virtual machine.
+      # The VM starts empty, so without this step there is nothing to test.
+      # "actions/checkout" is an official, ready-made action; v4 is its version.
+      # ----------------------------------------------------------------------
+      - name: Checkout the repository code
+        uses: actions/checkout@v4
+
+      # ----------------------------------------------------------------------
+      # STEP 1.2 - Install Node.js on the virtual machine.
+      # Our tests are written in JavaScript and run with Node's built-in
+      # test runner, so Node must be available before we can run them.
+      # ----------------------------------------------------------------------
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'   # pin the version so results stay reproducible
+
+      # ----------------------------------------------------------------------
+      # STEP 1.3 - THE IMPORTANT ONE: run the test suite.
+      #
+      # "npm test" runs the command defined in package.json, which executes
+      # every test file inside the /tests folder. Those tests check:
+      #
+      #   * does every image / stylesheet referenced in index.html really exist?
+      #     (this is what catches the classic "the folder has img.jpg but the
+      #      code says img1.png" bug - online the page would show a broken image)
+      #   * is every CSS class used in the HTML actually styled?
+      #   * does the ID card still have its header, photo and student details?
+      #   * are there any blank or placeholder values left on the card?
+      #   * does the page have a title, a lang attribute and image alt text?
+      #
+      # RULE OF CI: if a command exits with a non-zero code, the step FAILS.
+      # A failed step fails the whole job, and a failed job stops the pipeline,
+      # which means JOB 2 (deploy) below never runs.
+      # ----------------------------------------------------------------------
+      - name: Run ID card tests
+        run: npm test
+
+      # ----------------------------------------------------------------------
+      # STEP 1.4 - A friendly confirmation message in the logs.
+      # This step only executes if every step above succeeded.
+      # ----------------------------------------------------------------------
+      - name: All tests passed
+        run: echo "All tests passed. The code is safe to deploy."
+
+
+  # ============================================================================
+  #  JOB 2 : DEPLOY  -  PUBLISH THE SITE TO GITHUB PAGES
+  #  Runs ONLY after Job 1 has finished successfully.
+  # ============================================================================
+  deploy:
+    name: Deploy to GitHub Pages
+
+    # ------------------------------------------------------------------------
+    # "needs: test" is the heart of this pipeline.
+    # It means: do not even start this job until the job named "test" passes.
+    # If a test fails, this job is skipped entirely and the currently live
+    # website stays exactly as it was - users never see the broken version.
+    # ------------------------------------------------------------------------
+    needs: test
+
+    # ------------------------------------------------------------------------
+    # Only deploy on a real push to main (or a manual run).
+    # Pull requests still get tested by Job 1 but must NOT publish anything,
+    # because that change has not been reviewed and merged yet.
+    # github.event_name tells us which trigger started this run.
+    # ------------------------------------------------------------------------
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+
+    runs-on: ubuntu-latest
+
+    # ------------------------------------------------------------------------
+    # "environment" links this job to the GitHub Pages environment, so the
+    # final website URL appears as a clickable link in the Actions tab.
+    # ------------------------------------------------------------------------
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+
+      # ----------------------------------------------------------------------
+      # STEP 2.1 - Download the code again.
+      # Remember: Job 2 runs on a BRAND NEW virtual machine, so nothing from
+      # Job 1 is carried over. We must fetch the files once more.
+      # ----------------------------------------------------------------------
+      - name: Checkout the repository code
+        uses: actions/checkout@v4
+
+      # ----------------------------------------------------------------------
+      # STEP 2.2 - Prepare GitHub Pages and work out the site's base URL.
+      # ----------------------------------------------------------------------
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+
+      # ----------------------------------------------------------------------
+      # STEP 2.3 - Package the website files into an "artifact".
+      # An artifact is simply a zip of the files we want to publish.
+      # "path: '.'" means the whole project folder - which is correct here,
+      # because our site is plain HTML/CSS with no build step.
+      # (If this were React or Vite, we would build first and upload ./dist.)
+      # ----------------------------------------------------------------------
+      - name: Upload the website files
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: '.'
+
+      # ----------------------------------------------------------------------
+      # STEP 2.4 - Publish the artifact to GitHub Pages. The site goes LIVE.
+      # The "id: deployment" label lets the "environment.url" above read the
+      # final website address produced by this step.
+      # ----------------------------------------------------------------------
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
